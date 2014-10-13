@@ -95,25 +95,29 @@ namespace oxyplotdrawing
     // 显示高速作业曲线
     public void FFCurve()
     {
-      drawline(ptd.TimeFF,ptd.PressureFF);
+      plotModel1.Series.Clear();//清空后台画线数据
+      plotModel1.Annotations.Clear();//清空后台标记点数据
+      //原则一：每个函数做到功能单一
+      drawline(ptd.TimeFF, ptd.PressureFF);
+      getPeak();
+      markPoint();
+      plotModel1.InvalidatePlot(true);//刷新屏幕
     }
     // 加载文件--》要数据--》构造对象
     // 参数：file 需要打开的文件
-    public void markpoint(double x, double y)
+    public void markPoint(Point pt, string name)
     {
       var mark = new PointAnnotation();//标记点
-      mark.X = x;
-      mark.Y = y;
+      mark.X = pt.X;
+      mark.Y = pt.Y;
       mark.Shape = MarkerType.Square;
       mark.Stroke = OxyColors.DarkBlue;
       mark.StrokeThickness = 1;
-      mark.Text = "P";   //TODO: 名称会变？
+      mark.Text = name;   //TODO: 名称会变？
       plotModel1.Annotations.Add(mark);
     }
     public void drawline(IEnumerator time, IEnumerator pressure)
     {
-      plotModel1.Series.Clear();//清空后台画线数据
-      plotModel1.Annotations.Clear();//清空后台标记点数据
       var lineSeries1 = new LineSeries();
       double maxX = 0;
       double maxY = 0;
@@ -134,7 +138,6 @@ namespace oxyplotdrawing
       }
       markpoint(maxX, maxY);       
       plotModel1.Series.Add(lineSeries1);
-      plotModel1.InvalidatePlot(true);//刷新屏幕
     }
   }
   public class PTData

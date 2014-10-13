@@ -70,7 +70,7 @@ namespace oxyplotdrawing
   // 窗口的数据模型
   public class MainViewModel
   {
-    private PTData ptd = null;  //
+    private PTData ptd = null;  
     public PlotModel plotModel1 { get; private set; }
     public MainViewModel(PTData ptd)
     {
@@ -136,7 +136,7 @@ namespace oxyplotdrawing
         }
         lineSeries1.Points.Add(new DataPoint(shuzi1, shuzi2));
       }
-      markpoint(maxX, maxY);       
+      markpoint(maxX, maxY);     
       plotModel1.Series.Add(lineSeries1);
     }
   }

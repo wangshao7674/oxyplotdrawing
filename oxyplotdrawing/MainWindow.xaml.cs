@@ -94,6 +94,7 @@ namespace oxyplotdrawing
       plotModel1.Annotations.Clear();//清空后台标记点数据
       drawline(ptd.Time,ptd.Pressure);
       plotModel1.InvalidatePlot(true);//刷新屏幕
+
     }
     // 显示高速作业曲线
     public void FFCurve()
@@ -112,7 +113,7 @@ namespace oxyplotdrawing
     public void markPoint(Point pt, string name)
     {
       var mark = new PointAnnotation();//标记点
-      mark.X = pt.X;
+      mark.X = pt.X;//点的横坐标
       mark.Y = pt.Y;
       mark.Shape = MarkerType.Square;
       mark.Stroke = OxyColors.DarkBlue;

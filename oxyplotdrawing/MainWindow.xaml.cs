@@ -89,18 +89,22 @@ namespace oxyplotdrawing
       plotModel1.Axes.Add(linearAxis2);
     }
     public void wholeCurve()
-    {      
-      drawline(ptd.Time,ptd.Pressure);      
+    {
+      plotModel1.Series.Clear();//清空后台画线数据
+      plotModel1.Annotations.Clear();//清空后台标记点数据
+      drawline(ptd.Time,ptd.Pressure);
+      plotModel1.InvalidatePlot(true);//刷新屏幕
     }
     // 显示高速作业曲线
     public void FFCurve()
     {
+      Point pmax;
       plotModel1.Series.Clear();//清空后台画线数据
       plotModel1.Annotations.Clear();//清空后台标记点数据
       //原则一：每个函数做到功能单一
       drawline(ptd.TimeFF, ptd.PressureFF);
-      getPeak();
-      markPoint();
+      pmax = getPeak(ptd.TimeFF, ptd.PressureFF);
+      markPoint(pmax,"极值点");
       plotModel1.InvalidatePlot(true);//刷新屏幕
     }
     // 加载文件--》要数据--》构造对象
@@ -118,11 +122,24 @@ namespace oxyplotdrawing
     }
     public void drawline(IEnumerator time, IEnumerator pressure)
     {
+      
       var lineSeries1 = new LineSeries();
-      double maxX = 0;
-      double maxY = 0;
       lineSeries1.Title = "Series 1";
       if (time == null) return;
+      IEnumerator tenu = time;
+      IEnumerator penu = pressure;
+      for (tenu.MoveNext(), penu.MoveNext(); tenu.MoveNext() && penu.MoveNext(); )
+      {
+        double shuzi1 = Convert.ToDouble(tenu.Current);
+        double shuzi2 = Convert.ToDouble(penu.Current);
+        lineSeries1.Points.Add(new DataPoint(shuzi1, shuzi2));
+      }        
+      plotModel1.Series.Add(lineSeries1);     
+    }
+    public Point getPeak(IEnumerator time, IEnumerator pressure)
+    {
+      double maxX = 0;
+      double maxY = 0;
       IEnumerator tenu = time;
       IEnumerator penu = pressure;
       for (tenu.MoveNext(), penu.MoveNext(); tenu.MoveNext() && penu.MoveNext(); )
@@ -134,10 +151,8 @@ namespace oxyplotdrawing
           maxY = shuzi2;
           maxX = shuzi1;
         }
-        lineSeries1.Points.Add(new DataPoint(shuzi1, shuzi2));
       }
-      markpoint(maxX, maxY);     
-      plotModel1.Series.Add(lineSeries1);
+      return new Point(maxX, maxY);
     }
   }
   public class PTData

@@ -46,14 +46,19 @@ namespace oxyplotdrawing
         return;  //用户取消
       }
       PTData ptd = PTData.Load(op.FileName);
-      //assert(ptd != null);
-      if (ptd == null) MessageBox.Show("数据格式错误！");
-      mvm = new MainViewModel(ptd);   //组装
-      //初始化mvm
-      this.DataContext = mvm;
-      //new PTDATA
-      //new MainViewModel   //add 
-      //DataContext
+      if (ptd == null)
+      {
+        MessageBox.Show("数据格式错误！");
+        return;
+      }
+      if (mvm == null)
+      {
+        //初始化mvm
+        mvm = new MainViewModel(ptd);   //组装
+        this.DataContext = mvm;
+      }
+      else
+        mvm.addData(ptd);
       pressFF.IsEnabled=true;
       pressure.IsEnabled = true;
     }
@@ -70,12 +75,14 @@ namespace oxyplotdrawing
   // 窗口的数据模型
   public class MainViewModel
   {
-    private PTData ptd = null;  
+    private PTData ptd = null;  //ArrayList
+    private ArrayList ptds = new ArrayList(3);
     public PlotModel plotModel1 { get; private set; }
     public MainViewModel(PTData ptd)
     {
-      // assert(this.ptd != null);
+      Debug.Assert(this.ptd != null);
       this.ptd = ptd;
+      ptds.Add(ptd);
       plotModel1 = new PlotModel();
       plotModel1.Title = "压力曲线";
       var linearAxis1 = new LinearAxis();//横坐标
@@ -88,11 +95,17 @@ namespace oxyplotdrawing
       linearAxis2.Title = "pressure";
       plotModel1.Axes.Add(linearAxis2);
     }
+    public void addData(PTData ptd)
+    {
+      Debug.Assert(ptd != null);
+      ptds.Add(ptd);
+    }
     public void wholeCurve()
     {
       plotModel1.Series.Clear();//清空后台画线数据
       plotModel1.Annotations.Clear();//清空后台标记点数据
-      drawline(ptd.Time,ptd.Pressure);
+      foreach(PTData obj in ptds)
+        drawline(obj.Time,obj.Pressure);
       plotModel1.InvalidatePlot(true);//刷新屏幕
     }
     // 显示高速作业曲线
@@ -120,12 +133,11 @@ namespace oxyplotdrawing
       mark.Text = name;   //TODO: 名称会变？
       plotModel1.Annotations.Add(mark);
     }
-    public void drawline(IEnumerator time, IEnumerator pressure)
+    private void drawline(IEnumerator time, IEnumerator pressure)
     {
-      
+      Debug.Assert(time != null && pressure != null);      
       var lineSeries1 = new LineSeries();
       lineSeries1.Title = "Series 1";
-      if (time == null) return;
       IEnumerator tenu = time;
       IEnumerator penu = pressure;
       for (tenu.MoveNext(), penu.MoveNext(); tenu.MoveNext() && penu.MoveNext(); )
@@ -136,7 +148,7 @@ namespace oxyplotdrawing
       }        
       plotModel1.Series.Add(lineSeries1);     
     }
-    public Point getPeak(IEnumerator time, IEnumerator pressure)
+    private Point getPeak(IEnumerator time, IEnumerator pressure)
     {
       double maxX = 0;
       double maxY = 0;

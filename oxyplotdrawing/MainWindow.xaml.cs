@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -80,7 +81,7 @@ namespace oxyplotdrawing
     public PlotModel plotModel1 { get; private set; }
     public MainViewModel(PTData ptd)
     {
-      Debug.Assert(this.ptd != null);
+      Debug.Assert(ptd != null);
       this.ptd = ptd;
       ptds.Add(ptd);
       plotModel1 = new PlotModel();
@@ -116,9 +117,12 @@ namespace oxyplotdrawing
       plotModel1.Series.Clear();//清空后台画线数据
       plotModel1.Annotations.Clear();//清空后台标记点数据
       //原则一：每个函数做到功能单一
-      drawline(ptd.TimeFF, ptd.PressureFF);
-      pmax = getPeak(ptd.TimeFF, ptd.PressureFF);
-      markPoint(pmax,"极值点");
+      foreach (PTData obj in ptds)
+      {
+        drawline(obj.TimeFF, obj.PressureFF);
+        pmax = getPeak(obj.TimeFF, obj.PressureFF);
+        markPoint(pmax, "极值点");
+      }
       plotModel1.InvalidatePlot(true);//刷新屏幕
     }
     // 加载文件--》要数据--》构造对象

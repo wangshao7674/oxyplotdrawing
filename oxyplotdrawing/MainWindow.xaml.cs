@@ -103,10 +103,11 @@ namespace oxyplotdrawing
     }
     public void wholeCurve()
     {
+      
       plotModel1.Series.Clear();//清空后台画线数据
       plotModel1.Annotations.Clear();//清空后台标记点数据
       foreach(PTData obj in ptds)
-        drawline(obj.Time,obj.Pressure);
+        drawline(getptlist(obj.Time,obj.Pressure));
       plotModel1.InvalidatePlot(true);//刷新屏幕
 
     }
@@ -114,20 +115,22 @@ namespace oxyplotdrawing
     public void FFCurve()
     {
       Point pmax;
+      List<Point> poiw = new List<Point>();//中间变量
       plotModel1.Series.Clear();//清空后台画线数据
       plotModel1.Annotations.Clear();//清空后台标记点数据
       //原则一：每个函数做到功能单一
       foreach (PTData obj in ptds)
       {
-        drawline(obj.TimeFF, obj.PressureFF);
-        pmax = getPeak(obj.TimeFF, obj.PressureFF);
+        poiw = getptlist(obj.TimeFF, obj.PressureFF);
+        drawline(getdt(poiw));
+        pmax = getPeak(getdt(poiw));
         markPoint(pmax, "极值点");
       }
       plotModel1.InvalidatePlot(true);//刷新屏幕
     }
     // 加载文件--》要数据--》构造对象
     // 参数：file 需要打开的文件
-    public void markPoint(Point pt, string name)
+    public void markPoint(Point pt, string name)//对点进行标记
     {
       var mark = new PointAnnotation();//标记点
       mark.X = pt.X;//点的横坐标
@@ -138,38 +141,55 @@ namespace oxyplotdrawing
       mark.Text = name;   //TODO: 名称会变？
       plotModel1.Annotations.Add(mark);
     }
-    private void drawline(IEnumerator time, IEnumerator pressure)
+    private void drawline(List<Point> pois)//将离散的点画成曲线
     {
-      Debug.Assert(time != null && pressure != null);      
+      Debug.Assert(pois != null);      
       var lineSeries1 = new LineSeries();
-      lineSeries1.Title = "Series 1";
-      IEnumerator tenu = time;
-      IEnumerator penu = pressure;
-      for (tenu.MoveNext(), penu.MoveNext(); tenu.MoveNext() && penu.MoveNext(); )
+      lineSeries1.Title = "series1";
+      foreach (Point obj in pois)
       {
-        double shuzi1 = Convert.ToDouble(tenu.Current);
-        double shuzi2 = Convert.ToDouble(penu.Current);
-        lineSeries1.Points.Add(new DataPoint(shuzi1, shuzi2));
+        lineSeries1.Points.Add(new DataPoint(obj.X, obj.Y));
       }        
       plotModel1.Series.Add(lineSeries1);     
     }
-    private Point getPeak(IEnumerator time, IEnumerator pressure)
+    private Point getPeak(List<Point> pois)//所有点中找出纵坐标最大的点
     {
       double maxX = 0;
       double maxY = 0;
+      maxY = pois[0].Y;
+      foreach(Point obj in pois)
+      {
+        if (obj.Y >= maxY)
+        {
+          maxY = obj.Y;
+          maxX = obj.X;
+        }
+      }
+      return new Point(maxX, maxY);
+    }
+    private List<Point> getdt(List<Point> pois)//对点进行处理，每一个点的横坐标减去第一个点的横坐标
+    {
+      double midX = 0;
+      List<Point> poit = new List<Point>();
+      midX = pois[0].X;
+      foreach (Point obj in pois)
+      {
+        poit.Add(new Point(obj.X - midX,obj.Y));
+      }
+      return poit;
+    }
+    private List<Point> getptlist(IEnumerator time, IEnumerator pressure)//将数据取出，组合成符合要求的点
+    {
+      List<Point> poi = new List<Point>();
       IEnumerator tenu = time;
       IEnumerator penu = pressure;
       for (tenu.MoveNext(), penu.MoveNext(); tenu.MoveNext() && penu.MoveNext(); )
       {
         double shuzi1 = Convert.ToDouble(tenu.Current);
         double shuzi2 = Convert.ToDouble(penu.Current);
-        if (shuzi2 >= maxY)
-        {
-          maxY = shuzi2;
-          maxX = shuzi1;
-        }
+        poi.Add(new Point(shuzi1,shuzi2));
       }
-      return new Point(maxX, maxY);
+      return poi;
     }
   }
   public class PTData

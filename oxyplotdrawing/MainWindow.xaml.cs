@@ -46,7 +46,6 @@ namespace oxyplotdrawing
         return;  //用户取消
       }
       PTData ptd = PTData.Load(op.FileName);
-      MessageBox.Show(op.FileName);
       if (ptd == null)
       {
         MessageBox.Show("数据格式错误！");
@@ -55,13 +54,13 @@ namespace oxyplotdrawing
       if (mvm == null)
       {
         //初始化mvm
-        ptd.FileName = op.FileName;
+        ptd.FileName = op.SafeFileName;
         mvm = new MainViewModel(ptd);   //组装
         this.DataContext = mvm;
       }
       else
       {
-        ptd.FileName = op.FileName;
+        ptd.FileName = op.SafeFileName;
         mvm.addData(ptd);
       }
       pressFF.IsEnabled=true;
@@ -80,14 +79,12 @@ namespace oxyplotdrawing
   // 窗口的数据模型
   public class MainViewModel
   {
-    private PTData ptd = null;  //ArrayList
     private ArrayList ptds = new ArrayList();
     private ArrayList flnames = new ArrayList();
     public PlotModel plotModel1 { get; private set; }
     public MainViewModel(PTData ptd)
     {
       Debug.Assert(ptd != null);
-      this.ptd = ptd;
       ptds.Add(ptd);
       plotModel1 = new PlotModel();
       plotModel1.Title = "压力曲线";

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -47,6 +46,7 @@ namespace oxyplotdrawing
         return;  //用户取消
       }
       PTData ptd = PTData.Load(op.FileName);
+      MessageBox.Show(op.FileName);
       if (ptd == null)
       {
         MessageBox.Show("数据格式错误！");
@@ -55,11 +55,15 @@ namespace oxyplotdrawing
       if (mvm == null)
       {
         //初始化mvm
+        ptd.FileName = op.FileName;
         mvm = new MainViewModel(ptd);   //组装
         this.DataContext = mvm;
       }
       else
+      {
+        ptd.FileName = op.FileName;
         mvm.addData(ptd);
+      }
       pressFF.IsEnabled=true;
       pressure.IsEnabled = true;
     }
@@ -77,7 +81,8 @@ namespace oxyplotdrawing
   public class MainViewModel
   {
     private PTData ptd = null;  //ArrayList
-    private ArrayList ptds = new ArrayList(3);
+    private ArrayList ptds = new ArrayList();
+    private ArrayList flnames = new ArrayList();
     public PlotModel plotModel1 { get; private set; }
     public MainViewModel(PTData ptd)
     {
@@ -107,7 +112,7 @@ namespace oxyplotdrawing
       plotModel1.Series.Clear();//清空后台画线数据
       plotModel1.Annotations.Clear();//清空后台标记点数据
       foreach(PTData obj in ptds)
-        drawline(getptlist(obj.Time,obj.Pressure));
+        drawline(getptlist(obj.Time,obj.Pressure),obj.FileName);
       plotModel1.InvalidatePlot(true);//刷新屏幕
 
     }
@@ -122,7 +127,7 @@ namespace oxyplotdrawing
       foreach (PTData obj in ptds)
       {
         poiw = getptlist(obj.TimeFF, obj.PressureFF);
-        drawline(getdt(poiw));
+        drawline(getdt(poiw),obj.FileName);
         pmax = getPeak(getdt(poiw));
         markPoint(pmax, "极值点");
       }
@@ -141,11 +146,11 @@ namespace oxyplotdrawing
       mark.Text = name;   //TODO: 名称会变？
       plotModel1.Annotations.Add(mark);
     }
-    private void drawline(List<Point> pois)//将离散的点画成曲线
+    private void drawline(List<Point> pois,string name)//将离散的点画成曲线
     {
       Debug.Assert(pois != null);      
       var lineSeries1 = new LineSeries();
-      lineSeries1.Title = "series1";
+      lineSeries1.Title = name;
       foreach (Point obj in pois)
       {
         lineSeries1.Points.Add(new DataPoint(obj.X, obj.Y));
@@ -197,6 +202,7 @@ namespace oxyplotdrawing
     private ArrayList[] myAL = new ArrayList[3];
     private int[] key = new int[20];
     private PTData() { }
+    private string filename=null;
     public static PTData Load(string file)
     {
       PTData ret = new PTData();
@@ -224,6 +230,11 @@ namespace oxyplotdrawing
         index += 1;  //索引右移
       }
       return ret;
+    }
+    public string FileName
+    {
+      get { return filename; }
+      set { filename = value; }
     }
     public IEnumerator Time
     {
